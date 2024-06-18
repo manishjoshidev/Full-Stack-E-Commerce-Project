@@ -4,18 +4,19 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Jwts;
 
 import java.security.Key;
-import java.util.Base64;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 @Component
-public class jwtUtil {
+public class jwtUtil {   // method chaining or layered abstraction Design pattern to separate concerns
     public static final String SECRET="67d6d7s6s76s7s6699";
 
   public String generateToken(String userName){
@@ -41,11 +42,21 @@ byte[]keybytes= Decoders.BASE64.decode(SECRET); //setting value of Keybutes vari
 
   }
   public <T> T extractClaims(String token, Function<Claims,T> claimsResolver){
-    final Claims claims=extractAllCalims(token);
+    final Claims claims=extractAllClaims(token);
     return claimsResolver.apply(claims);
   }
-  private Claims extractAllCalims(String token){
-    return Jwts.parserBuilder().setSigningKey(getSignKey().build().parseClaimsjws())
+  private Claims extractAllClaims(String token){
+    return Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token).getBody();
   }
+  private Boolean isTokenExpired(String token){
+    return extractExpiration(token).before(new Date());
+  }
+  private Date extractExpiration(String token){
+    return extractClaims(token,Claims::getExpiration);
+  }
+public Boolean validateToken(String token, UserDetails userDetails){
+    final String username=extractUserName(token);
+    return (username.equals(userDetails.getUsername())&&  !isTokenExpired(token));
+}
 
 }

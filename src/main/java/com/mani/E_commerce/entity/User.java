@@ -14,7 +14,7 @@ import jakarta.persistence.Id;
 public class User {
     @Id
     private Long id;
-    private String mail;
+    private String Email;
     private String password;
     private String name;
     private userRole role;
